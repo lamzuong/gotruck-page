@@ -1,10 +1,10 @@
-import styles from './MyButton.module.scss';
+import styles from './Button.module.scss';
 
 import classNames from 'classnames/bind';
 
 const cx = classNames.bind(styles);
 
-function MyButton({ action, title }) {
+function Button({ action, title }) {
   return (
     <div className={cx('wrapper')}>
       <button className={cx('my-button')} onClick={action}>
@@ -14,4 +14,4 @@ function MyButton({ action, title }) {
   );
 }
 
-export default MyButton;
+export default Button;

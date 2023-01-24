@@ -1,0 +1,23 @@
+.banner {
+  width: 100%;
+  height: auto;
+}
+.wrapper-item {
+  padding: 40px 150px;
+
+  .item-list {
+    display: flex;
+    margin-top: 30px;
+    align-items: center;
+    padding: 0 0 40px 0;
+    border-bottom: 1px solid var(--div-color);
+
+    .icon-item {
+      width: 100px;
+      height: 100px;
+    }
+    .content-item {
+      margin-left: 30px;
+    }
+  }
+}
