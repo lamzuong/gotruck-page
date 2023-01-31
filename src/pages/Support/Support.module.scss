@@ -1,0 +1,16 @@
+.wrapper {
+  margin: 20px 0;
+}
+.tabs {
+  cursor: pointer;
+
+  .choose-tab {
+    color: var(--main-green);
+  }
+  .no-choose-tab {
+    color: var(--text-color);
+  }
+}
+.image {
+  width: 100%;
+}

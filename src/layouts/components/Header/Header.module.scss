@@ -22,6 +22,10 @@
     .header-item {
       display: flex;
       align-items: center;
+
+      &:hover {
+        color: #00b14f;
+      }
     }
 
     .item-title {
@@ -29,6 +33,11 @@
       margin-right: 50px;
       font-weight: 600;
       font-size: 1.8rem;
+
+      &::selection {
+        background: #00b14f;
+        color: #fff;
+      }
     }
   }
 }

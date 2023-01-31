@@ -1,6 +1,6 @@
-import styles from './Alert.module.scss';
+import styles from './MyAlert.module.scss';
 
-import React, { useState } from 'react';
+import React from 'react';
 import classNames from 'classnames/bind';
 
 const cx = classNames.bind(styles);

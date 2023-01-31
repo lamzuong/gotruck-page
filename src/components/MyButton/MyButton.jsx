@@ -1,4 +1,4 @@
-import styles from './Button.module.scss';
+import styles from './MyButton.module.scss';
 
 import classNames from 'classnames/bind';
 

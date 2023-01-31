@@ -1,4 +1,4 @@
-import styles from './Input.module.scss';
+import styles from './MyInput.module.scss';
 
 import classNames from 'classnames/bind';
 import { useEffect, useState } from 'react';
