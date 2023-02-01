@@ -1,4 +1,6 @@
 import styles from './Support.module.scss';
+import User from './User/User';
+import Shipper from './Shipper/Shipper';
 
 import classNames from 'classnames/bind';
 import { useState } from 'react';
@@ -9,6 +11,7 @@ const cx = classNames.bind(styles);
 function Support() {
   const [tab, setTab] = useState(0);
   const title = ['Người dùng', 'Tài xế'];
+  const content = [<User />, <Shipper />];
   return (
     <div>
       <Nav tabs>
@@ -21,16 +24,11 @@ function Support() {
         ))}
       </Nav>
       <TabContent activeTab={tab}>
-        <TabPane tabId={0}>
-          <div className={cx('wrapper')}>
-            <img src={require('~/assets/images/banner-page.jpg')} className={cx('image')} />
-          </div>
-        </TabPane>
-        <TabPane tabId={1}>
-          <div className={cx('wrapper')}>
-            <img src={require('~/assets/images/banner-page.jpg')} className={cx('image')} />
-          </div>
-        </TabPane>
+        {content.map((e, i) => (
+          <TabPane tabId={i} key={i}>
+            <div className={cx('wrapper')}>{e}</div>
+          </TabPane>
+        ))}
       </TabContent>
     </div>
   );
