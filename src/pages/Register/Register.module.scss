@@ -3,6 +3,23 @@
   flex-direction: column;
   align-items: center;
 
+  .title-header {
+    margin-top: 50px;
+    align-items: flex-start;
+    width: 25%;
+    font-weight: 700;
+  }
+  .select-item {
+    border-radius: 50%;
+    width: 300px;
+    height: 30px;
+    font-size: 1.6rem;
+
+    &:focus-within {
+      border: 1.5px solid var(--main-green);
+    }
+  }
+
   .item-input {
     margin-top: 10px;
     width: 300px;

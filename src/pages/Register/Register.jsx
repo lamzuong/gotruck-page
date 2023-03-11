@@ -9,29 +9,52 @@ import { AlertContext } from '~/context/AlertContext';
 import classNames from 'classnames/bind';
 import { useContext, useEffect, useState } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Alert, Button } from 'reactstrap';
+import ReactSelect from 'react-select';
+import truckAPI from '~/api/truckAPI';
+import { useNavigate } from 'react-router-dom';
 
 const cx = classNames.bind(styles);
 
 function SignUp() {
   const ctx = useContext(AlertContext);
   const useMessage = ctx.Message();
+  const navigate = useNavigate();
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [cmnd, setCmnd] = useState('');
+
+  const [nameTruck, setNameTruck] = useState('');
+  const [weightTruck, setWeightTruck] = useState({ value: 1, label: 'Xe 1 tấn' });
   const [numberTruck, setNumberTruck] = useState('');
 
   const [data, setData] = useState([]);
   const [listImage, setListImage] = useState([]);
+  const [listWeight, setListWeight] = useState([]);
 
   const [validName, setValidName] = useState(false);
   const [validPhone, setValidPhone] = useState(false);
   const [validEmail, setValidEmail] = useState(false);
   const [validAddress, setValidAddress] = useState(false);
+  const [validCmnd, setValidCmnd] = useState(false);
+  const [validNameTruck, setValidNameTruck] = useState(false);
   const [validNumberTruck, setValidNumberTruck] = useState(false);
   const [hideErr, setHideErr] = useState(true);
 
+  useEffect(() => {
+    const getAllTruck = async () => {
+      const res = await truckAPI.getTruckType();
+      const resSort = res.sort((a, b) => a.name - b.name);
+      const list = [];
+      for (const item of resSort) {
+        list.push({ value: item.name, label: 'Xe ' + item.name + ' tấn' });
+      }
+      setListWeight(list);
+    };
+    getAllTruck();
+  }, []);
   useEffect(() => {
     setListImage([...listImage, ...data]);
   }, [data]);
@@ -49,6 +72,9 @@ function SignUp() {
         validPhone &&
         validEmail &&
         validAddress &&
+        validCmnd &&
+        validNameTruck &&
+        weightTruck !== null &&
         validNumberTruck &&
         listImage.length >= 4
       )
@@ -77,7 +103,7 @@ function SignUp() {
             vài ngày tới nếu đơn của bạn được chấp thuận!
           </ModalBody>
           <ModalFooter>
-            <Button color="primary" onClick={toggle}>
+            <Button color="primary" onClick={() => navigate('/')}>
               <h4>OK, Tôi đã hiểu</h4>
             </Button>
           </ModalFooter>
@@ -85,7 +111,8 @@ function SignUp() {
       ) : null}
 
       {/* Form đăng ký */}
-      <h1>Đăng ký để trở thành tài xế của GoTruck</h1>
+      <h1 style={{ fontWeight: 700 }}>Đăng ký để trở thành tài xế của GoTruck</h1>
+      <h2 className={cx('title-header')}>Thông tin cá nhân</h2>
       <MyInput
         data={setName}
         valid={setValidName}
@@ -122,10 +149,48 @@ function SignUp() {
         hideErr={hideErr}
       />
       <MyInput
+        data={setCmnd}
+        valid={setValidCmnd}
+        placeholder="CMND/CCCD"
+        regex={/^(\d{9}|\d{12})$/}
+        error={'CMND/CCCD không hợp lệ'}
+        checkEmpty={true}
+        hideErr={hideErr}
+      />
+      <h2 className={cx('title-header')}>Thông tin phương tiện</h2>
+      <MyInput
+        data={setNameTruck}
+        valid={setValidNameTruck}
+        placeholder="Tên phương tiện"
+        checkEmpty={true}
+        hideErr={hideErr}
+      />
+      <ReactSelect
+        defaultValue={weightTruck}
+        options={listWeight}
+        styles={{
+          control: (baseStyles, state) => ({
+            ...baseStyles,
+            borderColor: state.isFocused ? '#04af46' : 'grey',
+            borderRadius: 10,
+            width: 300,
+            height: 45,
+            margin: 10,
+          }),
+        }}
+        onChange={setWeightTruck}
+      />
+      <div style={{ maxWidth: 300 }}>
+        <i>
+          Lưu ý: Chọn loại trọng tải bé hơn hoặc bằng trọng tải của phương tiện muốn đăng ký (Vd:
+          Trọng tải 1 tấn hoặc 1.25 tấn =&#62; chọn 1 tấn)
+        </i>
+      </div>
+      <MyInput
         data={setNumberTruck}
         valid={setValidNumberTruck}
-        placeholder="Biển số xe - VD: 53-K2.12345"
-        regex={/^(([1-9]{2}|([2-9][0-9]))-([A-Z][1-9]).(\d{4}|\d{5}))$/}
+        placeholder="Biển số xe - VD: 53K.12345"
+        regex={/^(([1-9]{2}|([2-9][0-9]))([A-Z]).(\d{4}|\d{5}))$/}
         error={'Biển số xe không hợp lệ'}
         checkEmpty={true}
         hideErr={hideErr}
