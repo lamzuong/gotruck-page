@@ -10,8 +10,13 @@ import classNames from 'classnames/bind';
 import { useContext, useEffect, useState } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Alert, Button } from 'reactstrap';
 import ReactSelect from 'react-select';
-import truckAPI from '~/api/truckAPI';
+import { truckAPI, registerAPI } from '~/api/pageAPI';
 import { useNavigate } from 'react-router-dom';
+import uuid from 'react-uuid';
+
+import storage from '../../firebase/firebaseConfig';
+
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const cx = classNames.bind(styles);
 
@@ -27,11 +32,13 @@ function SignUp() {
   const [cmnd, setCmnd] = useState('');
 
   const [nameTruck, setNameTruck] = useState('');
-  const [weightTruck, setWeightTruck] = useState({ value: 1, label: 'Xe 1 tấn' });
+  const [weightTruck, setWeightTruck] = useState('');
   const [numberTruck, setNumberTruck] = useState('');
 
   const [data, setData] = useState([]);
   const [listImage, setListImage] = useState([]);
+  const [avatar, setAvatar] = useState([]);
+  const [avatarData, setAvatarData] = useState([]);
   const [listWeight, setListWeight] = useState([]);
 
   const [validName, setValidName] = useState(false);
@@ -41,23 +48,15 @@ function SignUp() {
   const [validCmnd, setValidCmnd] = useState(false);
   const [validNameTruck, setValidNameTruck] = useState(false);
   const [validNumberTruck, setValidNumberTruck] = useState(false);
-  const [hideErr, setHideErr] = useState(true);
 
-  useEffect(() => {
-    const getAllTruck = async () => {
-      const res = await truckAPI.getTruckType();
-      const resSort = res.sort((a, b) => a.name - b.name);
-      const list = [];
-      for (const item of resSort) {
-        list.push({ value: item.name, label: 'Xe ' + item.name + ' tấn' });
-      }
-      setListWeight(list);
-    };
-    getAllTruck();
-  }, []);
-  useEffect(() => {
-    setListImage([...listImage, ...data]);
-  }, [data]);
+  const [listTruck, setListTruck] = useState([]);
+  const [hideErr, setHideErr] = useState(true);
+  const [validAvatar, setValidAvatar] = useState(true);
+  const [validImageTruck, setValidImageTruck] = useState(true);
+
+  const [modal, setModal] = useState(false);
+
+  const toggle = () => setModal(!modal);
 
   const handleRemove = (index) => {
     let listTemp = [...listImage];
@@ -65,7 +64,19 @@ function SignUp() {
     setListImage(listTemp);
   };
 
-  const handleSubmit = () => {
+  const handleRemoveAvatar = (index) => {
+    let listTemp = [...avatar];
+    listTemp.splice(index, 1);
+    setAvatar(listTemp);
+  };
+
+  const getIdTruck = (value) => {
+    const id = listTruck.find((tr) => tr.name === value);
+    if (id) return id;
+    return null;
+  };
+
+  const handleSubmit = async () => {
     if (
       !(
         validName &&
@@ -76,19 +87,122 @@ function SignUp() {
         validNameTruck &&
         weightTruck !== null &&
         validNumberTruck &&
+        avatar.length > 0 &&
         listImage.length >= 4
       )
     ) {
-      setHideErr(false);
+      if (avatar.length === 0) {
+        setValidAvatar(false);
+      } else {
+        if (listImage.length < 4) {
+          setValidImageTruck(false);
+        }
+      }
       useMessage?.error('Vui lòng nhập chính xác và đầy đủ thông tin vào đơn đăng ký!', true, 1500);
     } else {
-      console.log(1);
-      toggle();
+      let listURLTruck = [];
+      let avatarURL = '';
+      const idTruck = getIdTruck(weightTruck.value);
+      //upload image info truck
+      for (let i = 0; i < listImage.length; i++) {
+        const storageRef = ref(storage, uuid());
+        const uploadTask = uploadBytesResumable(storageRef, listImage[i]);
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {},
+          (err) => console.log(err),
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+              listURLTruck.push(url);
+            });
+          },
+        );
+      }
+      //upload avatar
+      for (let i = 0; i < avatar.length; i++) {
+        const storageRef = ref(storage, uuid());
+        const uploadTask = uploadBytesResumable(storageRef, avatar[i]);
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {},
+          (err) => console.log(err),
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+              avatarURL = url;
+            });
+          },
+        );
+      }
+
+      const dataSend = {
+        shipper: {
+          name: name,
+          phone: phone,
+          email: email,
+          address: address,
+          avatar: avatarURL,
+          status: 'Chưa duyệt',
+          deleted: false,
+          block: false,
+          cmnd: cmnd,
+          balance: 0,
+        },
+        truck: {
+          license_plate: numberTruck,
+          name: nameTruck,
+          type_truck: idTruck,
+          list_image_info: listURLTruck,
+          status: 'Chưa duyệt',
+          default: true,
+          deleted: false,
+        },
+      };
+
+      const resRegister = await registerAPI.postRegister(dataSend);
+      if (resRegister.status === 'error') {
+        Alert.alert('Thông báo', resRegister.message);
+        return;
+      } else {
+        toggle();
+      }
     }
   };
 
-  const [modal, setModal] = useState(false);
-  const toggle = () => setModal(!modal);
+  useEffect(() => {
+    if (avatar.length === 0) {
+      setValidAvatar(false);
+    } else {
+      setValidAvatar(true);
+    }
+
+    if (listImage.length < 4) {
+      setValidImageTruck(false);
+    } else {
+      setValidImageTruck(true);
+    }
+  }, [listImage, avatar]);
+
+  useEffect(() => {
+    const getAllTruck = async () => {
+      const res = await truckAPI.getTruckType();
+      const list = [];
+      for (const item of res) {
+        list.push({ value: item.name, label: 'Xe ' + item.name + ' tấn' });
+      }
+      setWeightTruck(list[0]);
+      setListTruck([...res]);
+      setListWeight(list);
+    };
+    getAllTruck();
+  }, []);
+
+  useEffect(() => {
+    setListImage([...listImage, ...data]);
+  }, [data]);
+
+  useEffect(() => {
+    setAvatar([...avatar, ...avatarData]);
+  }, [avatarData]);
 
   return (
     <div className={cx('wrapper')}>
@@ -195,18 +309,38 @@ function SignUp() {
         checkEmpty={true}
         hideErr={hideErr}
       />
+
       <div className={cx('item-input')}>
-        <div className={cx('label')}>Hình ảnh minh chứng:</div>
+        <div className={cx('label')}>Ảnh khuôn mặt (1 ảnh):</div>
         <div className={cx('view-images')}>
+          {Array.from(avatar).map((e, i) => (
+            <div style={{ display: 'flex' }} key={i}>
+              <img src={URL.createObjectURL(e)} alt="" className={cx('image')} />
+              <img
+                src={iconRemove}
+                className={cx('icon-remove')}
+                onClick={() => handleRemoveAvatar(i)}
+              />
+            </div>
+          ))}
+          {avatar.length === 0 && <MyButtonAdd data={setAvatarData} multi={false} />}
+        </div>
+        {validAvatar ? null : <div className={cx('txt-error')}>Cần đủ 1 hình ảnh như ví dụ</div>}
+      </div>
+
+      <div className={cx('item-input')}>
+        <div className={cx('label')}>Hình ảnh xe và giấy tờ (tối thiểu 4 ảnh):</div>
+        <div div className={cx('view-images')}>
           {Array.from(listImage).map((e, i) => (
             <div style={{ display: 'flex' }} key={i}>
               <img src={URL.createObjectURL(e)} alt="" className={cx('image')} />
               <img src={iconRemove} className={cx('icon-remove')} onClick={() => handleRemove(i)} />
             </div>
           ))}
-          <MyButtonAdd data={setData} />
+
+          <MyButtonAdd data={setData} multi={true} />
         </div>
-        {hideErr || listImage.length >= 4 ? null : (
+        {validImageTruck ? null : (
           <div className={cx('txt-error')}>Cần đủ 4 hình ảnh như ví dụ</div>
         )}
       </div>

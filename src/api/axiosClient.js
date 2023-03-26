@@ -1,6 +1,6 @@
 import axios from 'axios';
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:8000/gotruck',
+  baseURL: 'http://localhost:8000/gotruck/pageregister',
   headers: {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
