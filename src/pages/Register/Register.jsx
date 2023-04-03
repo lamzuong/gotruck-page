@@ -346,6 +346,11 @@ function SignUp() {
       </div>
       <div className={cx('item-input')}>
         <div className={cx('label')}>Ví dụ:</div>
+        <div className={cx('label')}>
+          - Ảnh khuôn mặt: Ảnh chụp trong 6 tháng gần đây, đầu và vai thẳng để khuôn mặt chiếm
+          70-80% ảnh.
+        </div>
+        <div className={cx('label')}>- Ảnh xe và giấy tờ xe:</div>
       </div>
       <img src={demonsImg} className={cx('demons-img')} />
       <MyButton title={'Đăng ký'} action={handleSubmit} />
