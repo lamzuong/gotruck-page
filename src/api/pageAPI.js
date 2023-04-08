@@ -2,7 +2,7 @@ import axiosClient from './axiosClient';
 
 export const registerAPI = {
   postRegister: (params) => {
-    const url = `/register`;
+    const url = `/pageregister/register`;
     return axiosClient.post(url, params);
   },
 };
