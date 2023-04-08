@@ -9,7 +9,7 @@ export const registerAPI = {
 
 export const truckAPI = {
   getTruckType: () => {
-    const url = `/trucktype`;
+    const url = `pageregister/trucktype`;
     return axiosClient.get(url);
   },
 };
