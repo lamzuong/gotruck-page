@@ -8,7 +8,7 @@ import { AlertContext } from '~/context/AlertContext';
 
 import classNames from 'classnames/bind';
 import { useContext, useEffect, useState } from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Alert, Button } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner } from 'reactstrap';
 import ReactSelect from 'react-select';
 import { truckAPI, registerAPI } from '~/api/pageAPI';
 import { useNavigate } from 'react-router-dom';
@@ -37,8 +37,13 @@ function SignUp() {
 
   const [data, setData] = useState([]);
   const [listImage, setListImage] = useState([]);
+
   const [avatar, setAvatar] = useState([]);
   const [avatarData, setAvatarData] = useState([]);
+
+  const [listVehicleRegistration, setListVehicleRegistration] = useState([]);
+  const [dataVehicleRegistration, setDataVehicleRegistration] = useState([]);
+
   const [listWeight, setListWeight] = useState([]);
 
   const [validName, setValidName] = useState(false);
@@ -53,6 +58,7 @@ function SignUp() {
   const [hideErr, setHideErr] = useState(true);
   const [validAvatar, setValidAvatar] = useState(true);
   const [validImageTruck, setValidImageTruck] = useState(true);
+  const [validVehicleRegistration, setValidVehicleRegistration] = useState(true);
 
   const [modal, setModal] = useState(false);
 
@@ -68,6 +74,12 @@ function SignUp() {
     let listTemp = [...avatar];
     listTemp.splice(index, 1);
     setAvatar(listTemp);
+  };
+
+  const handleRemoveVehicleRegistration = (index) => {
+    let listTemp = [...listVehicleRegistration];
+    listTemp.splice(index, 1);
+    setListVehicleRegistration(listTemp);
   };
 
   const getIdTruck = (value) => {
@@ -88,51 +100,25 @@ function SignUp() {
         weightTruck !== null &&
         validNumberTruck &&
         avatar.length > 0 &&
-        listImage.length >= 4
+        listImage.length >= 4 &&
+        listVehicleRegistration.length >= 4
       )
     ) {
       if (avatar.length === 0) {
         setValidAvatar(false);
-      } else {
-        if (listImage.length < 4) {
-          setValidImageTruck(false);
-        }
+      } else if (listImage.length < 4) {
+        setValidImageTruck(false);
+      } else if (listVehicleRegistration.length < 4) {
+        setValidVehicleRegistration(false);
       }
       useMessage?.error('Vui lòng nhập chính xác và đầy đủ thông tin vào đơn đăng ký!', true, 1500);
     } else {
-      let listURLTruck = [];
-      let avatarURL = '';
       const idTruck = getIdTruck(weightTruck.value);
-      //upload image info truck
-      for (let i = 0; i < listImage.length; i++) {
-        const storageRef = ref(storage, uuid());
-        const uploadTask = uploadBytesResumable(storageRef, listImage[i]);
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {},
-          (err) => console.log(err),
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-              listURLTruck.push(url);
-            });
-          },
-        );
-      }
-      //upload avatar
-      for (let i = 0; i < avatar.length; i++) {
-        const storageRef = ref(storage, uuid());
-        const uploadTask = uploadBytesResumable(storageRef, avatar[i]);
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {},
-          (err) => console.log(err),
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-              avatarURL = url;
-            });
-          },
-        );
-      }
+
+      const listURLTruck = await uploadImage(listImage);
+      const listURLVehicleRegistration = await uploadImage(listVehicleRegistration);
+      const avatarURLres = await uploadImage(avatar);
+      const avatarURL = avatarURLres[0];
 
       const dataSend = {
         shipper: {
@@ -155,17 +141,27 @@ function SignUp() {
           status: 'Chưa duyệt',
           default: true,
           deleted: false,
+          list_vehicle_registration: listURLVehicleRegistration,
         },
       };
-
       const resRegister = await registerAPI.postRegister(dataSend);
       if (resRegister.status === 'error') {
-        Alert.alert('Thông báo', resRegister.message);
+        useMessage?.error(resRegister.message, true, 2500);
         return;
       } else {
         toggle();
       }
     }
+  };
+  const uploadImage = async (imageFileList) => {
+    const imagesUrlArray = [];
+    for (let i = 0; i < imageFileList.length; i++) {
+      const storageRef = ref(storage, uuid());
+      const uploadTask = await uploadBytesResumable(storageRef, imageFileList[i]);
+      const imageUrl = await getDownloadURL(storageRef);
+      imagesUrlArray.push(imageUrl);
+    }
+    return imagesUrlArray;
   };
 
   useEffect(() => {
@@ -180,7 +176,13 @@ function SignUp() {
     } else {
       setValidImageTruck(true);
     }
-  }, [listImage, avatar]);
+
+    if (listVehicleRegistration.length < 4) {
+      setValidVehicleRegistration(false);
+    } else {
+      setValidVehicleRegistration(true);
+    }
+  }, [listImage, avatar, listVehicleRegistration]);
 
   useEffect(() => {
     const getAllTruck = async () => {
@@ -203,6 +205,10 @@ function SignUp() {
   useEffect(() => {
     setAvatar([...avatar, ...avatarData]);
   }, [avatarData]);
+
+  useEffect(() => {
+    setListVehicleRegistration([...listVehicleRegistration, ...dataVehicleRegistration]);
+  }, [dataVehicleRegistration]);
 
   return (
     <div className={cx('wrapper')}>
@@ -323,13 +329,13 @@ function SignUp() {
               />
             </div>
           ))}
-          {avatar.length === 0 && <MyButtonAdd data={setAvatarData} multi={false} />}
+          {avatar.length === 0 && <MyButtonAdd data={setAvatarData} type={'avatar'} />}
         </div>
-        {validAvatar ? null : <div className={cx('txt-error')}>Cần đủ 1 hình ảnh như ví dụ</div>}
+        {validAvatar ? null : <div className={cx('txt-error')}>Cần đủ 1 hình ảnh </div>}
       </div>
 
       <div className={cx('item-input')}>
-        <div className={cx('label')}>Hình ảnh xe và giấy tờ (tối thiểu 4 ảnh):</div>
+        <div className={cx('label')}>Hình ảnh xe (tối thiểu 4 ảnh):</div>
         <div div className={cx('view-images')}>
           {Array.from(listImage).map((e, i) => (
             <div style={{ display: 'flex' }} key={i}>
@@ -338,19 +344,46 @@ function SignUp() {
             </div>
           ))}
 
-          <MyButtonAdd data={setData} multi={true} />
+          <MyButtonAdd data={setData} multi={true} type={'truck'} />
         </div>
-        {validImageTruck ? null : (
+        {validImageTruck ? null : <div className={cx('txt-error')}>Cần đủ 4 hình ảnh</div>}
+      </div>
+
+      <div className={cx('item-input')}>
+        <div className={cx('label')}>Hình ảnh giấy tờ (tối thiểu 4 ảnh):</div>
+        <div div className={cx('view-images')}>
+          {Array.from(listVehicleRegistration).map((e, i) => (
+            <div style={{ display: 'flex' }} key={i}>
+              <img src={URL.createObjectURL(e)} alt="" className={cx('image')} />
+              <img
+                src={iconRemove}
+                className={cx('icon-remove')}
+                onClick={() => handleRemoveVehicleRegistration(i)}
+              />
+            </div>
+          ))}
+
+          <MyButtonAdd
+            data={setDataVehicleRegistration}
+            multi={true}
+            type={'vehicleRegistration'}
+          />
+        </div>
+        {validVehicleRegistration ? null : (
           <div className={cx('txt-error')}>Cần đủ 4 hình ảnh như ví dụ</div>
         )}
       </div>
+
       <div className={cx('item-input')}>
         <div className={cx('label')}>Ví dụ:</div>
         <div className={cx('label')}>
           - Ảnh khuôn mặt: Ảnh chụp trong 6 tháng gần đây, đầu và vai thẳng để khuôn mặt chiếm
           70-80% ảnh.
         </div>
-        <div className={cx('label')}>- Ảnh xe và giấy tờ xe:</div>
+        <div className={cx('label')}>
+          - Ảnh xe: Ảnh chụp phải rõ ràng và chụp đủ phía trước, sau và 2 mặt bên của xe
+        </div>
+        <div className={cx('label')}>- Ảnh giấy tờ:</div>
       </div>
       <img src={demonsImg} className={cx('demons-img')} />
       <MyButton title={'Đăng ký'} action={handleSubmit} />

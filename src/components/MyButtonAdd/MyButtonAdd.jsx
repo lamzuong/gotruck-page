@@ -6,10 +6,10 @@ import { faCirclePlus } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(styles);
 
-function ButtonAdd({ data, multi }) {
+function ButtonAdd({ data, type }) {
   return (
     <>
-      {multi ? (
+      {type === 'truck' && (
         <div className={cx('wrapper')}>
           <label htmlFor="file-upload" className={cx('custom-file-input')}>
             <FontAwesomeIcon icon={faCirclePlus} color={'#04af46'} />
@@ -25,7 +25,27 @@ function ButtonAdd({ data, multi }) {
             accept=".png, .jpeg, .jpg"
           />
         </div>
-      ) : (
+      )}
+
+      {type === 'vehicleRegistration' && (
+        <div className={cx('wrapper')}>
+          <label htmlFor="file-upload-vehicle" className={cx('custom-file-input')}>
+            <FontAwesomeIcon icon={faCirclePlus} color={'#04af46'} />
+            <div className={cx('txtAdd')}>Thêm ảnh</div>
+          </label>
+          <input
+            id="file-upload-vehicle"
+            type="file"
+            multiple
+            onChange={(e) => {
+              data(e.target.files);
+            }}
+            accept=".png, .jpeg, .jpg"
+          />
+        </div>
+      )}
+
+      {type === 'avatar' && (
         <div className={cx('wrapper')}>
           <label htmlFor="file-upload-one" className={cx('custom-file-input')}>
             <FontAwesomeIcon icon={faCirclePlus} color={'#04af46'} />
