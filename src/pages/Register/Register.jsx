@@ -4,6 +4,8 @@ import MyButtonAdd from '~/components/MyButtonAdd/MyButtonAdd';
 import MyButton from '~/components/MyButton/MyButton';
 import iconRemove from '~/assets/images/close.png';
 import demonsImg from '~/assets/images/demons-img.jpg';
+import truckimg from '~/assets/images/truck_img.jpg';
+import img34 from '~/assets/images/anh34.jpg';
 import { AlertContext } from '~/context/AlertContext';
 
 import classNames from 'classnames/bind';
@@ -104,6 +106,7 @@ function SignUp() {
         listVehicleRegistration.length >= 4
       )
     ) {
+      setHideErr(false);
       if (avatar.length === 0) {
         setValidAvatar(false);
       } else if (listImage.length < 4) {
@@ -113,6 +116,7 @@ function SignUp() {
       }
       useMessage?.error('Vui lòng nhập chính xác và đầy đủ thông tin vào đơn đăng ký!', true, 1500);
     } else {
+      setHideErr(true);
       const idTruck = getIdTruck(weightTruck.value);
 
       const listURLTruck = await uploadImage(listImage);
@@ -165,24 +169,26 @@ function SignUp() {
   };
 
   useEffect(() => {
-    if (avatar.length === 0) {
-      setValidAvatar(false);
-    } else {
-      setValidAvatar(true);
-    }
+    if (!hideErr) {
+      if (avatar.length === 0) {
+        setValidAvatar(false);
+      } else {
+        setValidAvatar(true);
+      }
 
-    if (listImage.length < 4) {
-      setValidImageTruck(false);
-    } else {
-      setValidImageTruck(true);
-    }
+      if (listImage.length < 4) {
+        setValidImageTruck(false);
+      } else {
+        setValidImageTruck(true);
+      }
 
-    if (listVehicleRegistration.length < 4) {
-      setValidVehicleRegistration(false);
-    } else {
-      setValidVehicleRegistration(true);
+      if (listVehicleRegistration.length < 4) {
+        setValidVehicleRegistration(false);
+      } else {
+        setValidVehicleRegistration(true);
+      }
     }
-  }, [listImage, avatar, listVehicleRegistration]);
+  }, [listImage, avatar, listVehicleRegistration, hideErr]);
 
   useEffect(() => {
     const getAllTruck = async () => {
@@ -335,7 +341,7 @@ function SignUp() {
       </div>
 
       <div className={cx('item-input')}>
-        <div className={cx('label')}>Hình ảnh xe (tối thiểu 4 ảnh):</div>
+        <div className={cx('label')}>Hình ảnh xe (tối thiểu 3 ảnh):</div>
         <div div className={cx('view-images')}>
           {Array.from(listImage).map((e, i) => (
             <div style={{ display: 'flex' }} key={i}>
@@ -346,7 +352,7 @@ function SignUp() {
 
           <MyButtonAdd data={setData} multi={true} type={'truck'} />
         </div>
-        {validImageTruck ? null : <div className={cx('txt-error')}>Cần đủ 4 hình ảnh</div>}
+        {validImageTruck ? null : <div className={cx('txt-error')}>Cần đủ 3 hình ảnh</div>}
       </div>
 
       <div className={cx('item-input')}>
@@ -380,9 +386,15 @@ function SignUp() {
           - Ảnh khuôn mặt: Ảnh chụp trong 6 tháng gần đây, đầu và vai thẳng để khuôn mặt chiếm
           70-80% ảnh.
         </div>
+      </div>
+      <img src={img34} className={cx('img-34')} />
+      <div className={cx('item-input')}>
         <div className={cx('label')}>
-          - Ảnh xe: Ảnh chụp phải rõ ràng và chụp đủ phía trước, sau và 2 mặt bên của xe
+          - Ảnh xe: Ảnh chụp phải rõ ràng và chụp đủ phía trước, sau của xe
         </div>
+      </div>
+      <img src={truckimg} className={cx('demons-img')} />
+      <div className={cx('item-input')}>
         <div className={cx('label')}>- Ảnh giấy tờ:</div>
       </div>
       <img src={demonsImg} className={cx('demons-img')} />
