@@ -85,8 +85,8 @@ function SignUp() {
   };
 
   const getIdTruck = (value) => {
-    const id = listTruck.find((tr) => tr.name === value);
-    if (id) return id;
+    const truckTemp = listTruck.find((tr) => tr.name === value);
+    if (truckTemp) return truckTemp._id;
     return null;
   };
 
@@ -102,14 +102,14 @@ function SignUp() {
         weightTruck !== null &&
         validNumberTruck &&
         avatar.length > 0 &&
-        listImage.length >= 4 &&
+        listImage.length >= 3 &&
         listVehicleRegistration.length >= 4
       )
     ) {
       setHideErr(false);
       if (avatar.length === 0) {
         setValidAvatar(false);
-      } else if (listImage.length < 4) {
+      } else if (listImage.length < 3) {
         setValidImageTruck(false);
       } else if (listVehicleRegistration.length < 4) {
         setValidVehicleRegistration(false);
@@ -118,35 +118,24 @@ function SignUp() {
     } else {
       setHideErr(true);
       const idTruck = getIdTruck(weightTruck.value);
-
       const listURLTruck = await uploadImage(listImage);
       const listURLVehicleRegistration = await uploadImage(listVehicleRegistration);
       const avatarURLres = await uploadImage(avatar);
       const avatarURL = avatarURLres[0];
 
       const dataSend = {
-        shipper: {
-          name: name,
-          phone: phone,
-          email: email,
-          address: address,
-          avatar: avatarURL,
-          status: 'Chưa duyệt',
-          deleted: false,
-          block: false,
-          cmnd: cmnd,
-          balance: 0,
-        },
-        truck: {
-          license_plate: numberTruck,
-          name: nameTruck,
-          type_truck: idTruck,
-          list_image_info: listURLTruck,
-          status: 'Chưa duyệt',
-          default: true,
-          deleted: false,
-          list_vehicle_registration: listURLVehicleRegistration,
-        },
+        name: name,
+        phone: phone,
+        email: email,
+        address: address,
+        avatar: avatarURL,
+        cmnd: cmnd,
+        list_vehicle_registration: listURLVehicleRegistration,
+        list_image_info: listURLTruck,
+        type_truck: idTruck,
+        status: 'Chưa duyệt',
+        license_plate: numberTruck,
+        name_truck: nameTruck,
       };
       const resRegister = await registerAPI.postRegister(dataSend);
       if (resRegister.status === 'error') {
@@ -176,7 +165,7 @@ function SignUp() {
         setValidAvatar(true);
       }
 
-      if (listImage.length < 4) {
+      if (listImage.length < 3) {
         setValidImageTruck(false);
       } else {
         setValidImageTruck(true);
