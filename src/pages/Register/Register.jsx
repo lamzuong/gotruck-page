@@ -10,7 +10,7 @@ import { AlertContext } from '~/context/AlertContext';
 
 import classNames from 'classnames/bind';
 import { useContext, useEffect, useState } from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import ReactSelect from 'react-select';
 import { truckAPI, registerAPI } from '~/api/pageAPI';
 import { useNavigate } from 'react-router-dom';
@@ -65,6 +65,14 @@ function SignUp() {
   const [modal, setModal] = useState(false);
 
   const toggle = () => setModal(!modal);
+
+  const formatPhone = () => {
+    let phoneTemp = phone;
+    if (phone.charAt(0) !== '0') {
+      phoneTemp = '0' + phone;
+    }
+    return phoneTemp;
+  };
 
   const handleRemove = (index) => {
     let listTemp = [...listImage];
@@ -123,6 +131,7 @@ function SignUp() {
       const avatarURLres = await uploadImage(avatar);
       const avatarURL = avatarURLres[0];
 
+      const phone = formatPhone();
       const dataSend = {
         name: name,
         phone: phone,
@@ -150,7 +159,7 @@ function SignUp() {
     const imagesUrlArray = [];
     for (let i = 0; i < imageFileList.length; i++) {
       const storageRef = ref(storage, uuid());
-      const uploadTask = await uploadBytesResumable(storageRef, imageFileList[i]);
+      await uploadBytesResumable(storageRef, imageFileList[i]);
       const imageUrl = await getDownloadURL(storageRef);
       imagesUrlArray.push(imageUrl);
     }
@@ -195,15 +204,15 @@ function SignUp() {
 
   useEffect(() => {
     setListImage([...listImage, ...data]);
-  }, [data]);
+  }, [data, listImage]);
 
   useEffect(() => {
     setAvatar([...avatar, ...avatarData]);
-  }, [avatarData]);
+  }, [avatarData, avatar]);
 
   useEffect(() => {
     setListVehicleRegistration([...listVehicleRegistration, ...dataVehicleRegistration]);
-  }, [dataVehicleRegistration]);
+  }, [dataVehicleRegistration, listVehicleRegistration]);
 
   return (
     <div className={cx('wrapper')}>
@@ -242,7 +251,7 @@ function SignUp() {
         data={setPhone}
         valid={setValidPhone}
         placeholder="Số điện thoại"
-        regex={/^((09|03|07|08|05)([0-9]{8}))$/}
+        regex={/^(((09|03|07|08|05)|(9|3|7|8|5))([0-9]{8}))$/g}
         error={'Số điện thoại không hợp lệ'}
         checkEmpty={true}
         hideErr={hideErr}
@@ -321,6 +330,7 @@ function SignUp() {
                 src={iconRemove}
                 className={cx('icon-remove')}
                 onClick={() => handleRemoveAvatar(i)}
+                alt=""
               />
             </div>
           ))}
@@ -335,7 +345,12 @@ function SignUp() {
           {Array.from(listImage).map((e, i) => (
             <div style={{ display: 'flex' }} key={i}>
               <img src={URL.createObjectURL(e)} alt="" className={cx('image')} />
-              <img src={iconRemove} className={cx('icon-remove')} onClick={() => handleRemove(i)} />
+              <img
+                src={iconRemove}
+                className={cx('icon-remove')}
+                onClick={() => handleRemove(i)}
+                alt="icon-remove"
+              />
             </div>
           ))}
 
@@ -354,6 +369,7 @@ function SignUp() {
                 src={iconRemove}
                 className={cx('icon-remove')}
                 onClick={() => handleRemoveVehicleRegistration(i)}
+                alt="icon-remove"
               />
             </div>
           ))}
@@ -376,17 +392,17 @@ function SignUp() {
           70-80% ảnh.
         </div>
       </div>
-      <img src={img34} className={cx('img-34')} />
+      <img src={img34} className={cx('img-34')} alt="34" />
       <div className={cx('item-input')}>
         <div className={cx('label')}>
           - Ảnh xe: Ảnh chụp phải rõ ràng và chụp đủ phía trước, sau của xe
         </div>
       </div>
-      <img src={truckimg} className={cx('demons-img')} />
+      <img src={truckimg} className={cx('demons-img')} alt="demo" />
       <div className={cx('item-input')}>
         <div className={cx('label')}>- Ảnh giấy tờ:</div>
       </div>
-      <img src={demonsImg} className={cx('demons-img')} />
+      <img src={demonsImg} className={cx('demons-img')} alt="demo" />
       <MyButton title={'Đăng ký'} action={handleSubmit} />
     </div>
   );
