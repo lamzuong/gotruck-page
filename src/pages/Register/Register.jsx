@@ -204,15 +204,15 @@ function SignUp() {
 
   useEffect(() => {
     setListImage([...listImage, ...data]);
-  }, [data, listImage]);
+  }, [data]);
 
   useEffect(() => {
     setAvatar([...avatar, ...avatarData]);
-  }, [avatarData, avatar]);
+  }, [avatarData]);
 
   useEffect(() => {
     setListVehicleRegistration([...listVehicleRegistration, ...dataVehicleRegistration]);
-  }, [dataVehicleRegistration, listVehicleRegistration]);
+  }, [dataVehicleRegistration]);
 
   return (
     <div className={cx('wrapper')}>
