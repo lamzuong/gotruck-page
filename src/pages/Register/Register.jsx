@@ -99,6 +99,33 @@ function SignUp() {
   };
 
   const handleSubmit = async () => {
+    let imageSizeAvatar = 0;
+    for (let i = 0; i < avatar.length; i++) {
+      imageSizeAvatar += avatar[i].size;
+    }
+    if (imageSizeAvatar > 10000000) {
+      alert('Kích thước ảnh khuôn mặt quá lớn');
+      return;
+    }
+
+    let imageSize = 0;
+    for (let i = 0; i < listImage.length; i++) {
+      imageSize += listImage[i].size;
+    }
+    if (imageSize > 10000000) {
+      alert('Kích thước ảnh xe quá lớn');
+      return;
+    }
+
+    let imageSizeehicleRegistration = 0;
+    for (let i = 0; i < listVehicleRegistration.length; i++) {
+      imageSizeehicleRegistration += listVehicleRegistration[i].size;
+    }
+    if (imageSizeehicleRegistration > 10000000) {
+      alert('Kích thước ảnh giấy tờ quá lớn');
+      return;
+    }
+
     if (
       !(
         validName &&
