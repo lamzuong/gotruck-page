@@ -8,9 +8,8 @@ import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 function DetailPolicy() {
-  const url = window.location.href.slice(29);
-  const info = navigateToPolicy(url);
-
+  const param = window.location.href.split('/');
+  const info = navigateToPolicy(param[param.length - 1]);
   const [policy, setPolicy] = useState([]);
   useEffect(() => {
     const getPolicy = async () => {
